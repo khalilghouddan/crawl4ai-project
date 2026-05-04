@@ -15,7 +15,7 @@ from app.utils.validators import is_valid_url
 #db
 from app.db.repository import db_repository
 
-
+#i will call crawl for ai and them i will verfy if the user hve v4
 from crawl4ai import AsyncWebCrawler
 try:
     from crawl4ai import BrowserConfig, CrawlerRunConfig, CacheMode
@@ -23,7 +23,9 @@ try:
 except ImportError:
     HAS_CRAWL4AI_V4 = False
 
+#repete the fuction if it fais
 @get_retry_decorator()
+#ayc def
 async def fetch_url(url: str, request_config: ScrapeRequest) -> ScrapeResultItem:
     logger.info(f"Scraping URL -> {url}")
     

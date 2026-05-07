@@ -104,22 +104,24 @@ async def fetch_url(url: str, request_config: ScrapeRequest) -> ScrapeResultItem
     )
 
 async def process_url(url: str, request_config: ScrapeRequest) -> ScrapeResultItem:
-    if not is_valid_url(url):
-        res = ScrapeResultItem(url=url, status="failed", error="Invalid URL format. Use http:// or https://")
-        await db_repository.save_result(res)
-        return res
+    
+    #using the url validation fuction 
     if not is_valid_url(url):
         res = ScrapeResultItem(url=url, status="failed", error="Invalid URL format. Use http:// or https://")
         await db_repository.save_result(res)
         return res
         
+    # we will start time to make it 
     start_time = asyncio.get_event_loop().time()
+
     try:
+        #start scraping with fech_url
         result = await fetch_url(url, request_config)
     except Exception as e:
         logger.error(f"Failed completely on {url}: {e}")
         result = ScrapeResultItem(url=url, status="failed", error=str(e))
         
+    #get the time and past it in logs 
     elapsed = asyncio.get_event_loop().time() - start_time
     logger.info(f"Request for {url} ended with status: {result.status} in {elapsed:.2f}s")
     

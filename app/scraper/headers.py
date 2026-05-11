@@ -17,9 +17,13 @@ def add_referer() -> str:
     a = "https://www.google.com/"
     return a
 
-#return th fucking header 
-def prepare_headers() -> dict:
+# return the header 
+def prepare_headers(custom_headers: dict = None) -> dict:
     headers = {} 
     headers["User-Agent"] = get_random_user_agent()
     headers["Referer"] = add_referer()
+    
+    if custom_headers:
+        headers.update(custom_headers)
+        
     return headers

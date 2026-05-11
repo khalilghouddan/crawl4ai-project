@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Any
 from pydantic import BaseModel, Field
 
 class ScrapeRequest(BaseModel):
@@ -11,9 +11,11 @@ class ScrapeRequest(BaseModel):
 class ScrapeResultItem(BaseModel):
     url: str
     title: Optional[str] = None
-    content: Optional[str] = None
+    markdown: Optional[str] = None
+    markdown_raw: Optional[str] = None
     summary: Optional[str] = None
     links: Optional[List[str]] = None
+    metadata: Optional[Dict[str, Any]] = None
     status: str
     error: Optional[str] = None
 

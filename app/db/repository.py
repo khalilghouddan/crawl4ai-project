@@ -17,7 +17,7 @@ class DBRepository:
                     query, 
                     result.url, 
                     result.title, 
-                    result.content, 
+                    result.markdown, 
                     result.summary, 
                     result.status, 
                     result.error

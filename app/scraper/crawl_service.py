@@ -97,7 +97,7 @@ async def fetch_url(url: str, request_config: ScrapeRequest) -> ScrapeResultItem
     return ScrapeResultItem(
         url=url,
         title=result.metadata.get('title') if result.metadata else None,
-        content=clean_content,
+        markdown=clean_content,
         summary=summary,
         links=links if links else None,
         status="success"

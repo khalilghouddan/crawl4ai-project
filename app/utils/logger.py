@@ -1,12 +1,12 @@
 
-#python log to track used in big apps 
+"""Application logging setup."""
+
 import logging
 
 def setup_logger(name="scraper_service"):
-    #defining the log
+    """Configure and return the named application logger."""
     logging.basicConfig(
         level=logging.INFO,
-        #format time, level , name , message
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     )
     

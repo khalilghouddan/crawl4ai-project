@@ -1,3 +1,5 @@
+"""Markdown cleanup utilities for scraped content."""
+
 import re
 from typing import Optional
 

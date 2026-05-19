@@ -1,10 +1,12 @@
+"""Validation helpers for API and scraper inputs."""
+
 import logging
 from pydantic import TypeAdapter, AnyHttpUrl, ValidationError
 
 logger = logging.getLogger(__name__)
 
 def is_valid_url(url: str) -> bool:
-    #Validates if the provided string is a properly formatted HTTP/HTTPS URL.
+    """Return True when the value is a valid HTTP or HTTPS URL."""
     try:
         TypeAdapter(AnyHttpUrl).validate_python(url)
         return True

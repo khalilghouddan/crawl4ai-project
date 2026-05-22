@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.db.database import db
+from app.db.models import init_db
 from app.config import PROJECT_NAME, PROJECT_DESCRIPTION, PROJECT_VERSION
 
 app = FastAPI(
@@ -37,8 +38,9 @@ app.include_router(router)
 
 @app.on_event("startup")
 async def startup_event():
-    """Connect to PostgreSQL when the API starts."""
+    """Connect to PostgreSQL and prepare the database schema when the API starts."""
     await db.connect()
+    await init_db()
 
 @app.on_event("shutdown")
 async def shutdown_event():

@@ -54,7 +54,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ## 🐳 Docker Compose
 
-Run PostgreSQL, initialize the schema, start the API, and serve the frontend:
+Run PostgreSQL, start the API, and serve the frontend:
 
 ```bash
 docker compose up --build
@@ -63,13 +63,19 @@ docker compose up --build
 - **Frontend:** http://localhost:5174
 - **API Docs:** http://localhost:8007/docs
 - **Health Check:** http://localhost:8007/health
+- **PostgreSQL:** `localhost:5433`, database `deep_search_results`, user `postgres`, password `change_me`
 
 The compose setup uses these services:
 
 - `db`: PostgreSQL database
-- `init-db`: one-shot schema initialization
 - `api`: FastAPI + Crawl4AI service
 - `frontend`: static React test UI
+
+To inspect saved scrape results from your host machine:
+
+```bash
+docker compose exec -T db psql -U postgres -d deep_search_results -c "select id, url, status, created_at from scraped_pages order by created_at desc limit 10;"
+```
 
 Stop everything:
 

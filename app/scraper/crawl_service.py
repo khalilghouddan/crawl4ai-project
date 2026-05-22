@@ -1,8 +1,10 @@
 """Crawl4AI integration and scrape result normalization."""
 
 import asyncio
+import inspect
 import re
 from html.parser import HTMLParser
+from urllib import request as url_request
 
 from app.utils.logger import logger
 from app.schemas.scrape_schema import ScrapeRequest, ScrapeResultItem
@@ -54,6 +56,33 @@ def html_to_text(html: str) -> str:
     parser.feed(html)
     return parser.get_text()
 
+def supported_config(config_cls, **kwargs):
+    """Build a Crawl4AI config using only kwargs supported by the installed version."""
+    try:
+        signature = inspect.signature(config_cls)
+    except (TypeError, ValueError):
+        return config_cls(**kwargs)
+
+    if any(param.kind == inspect.Parameter.VAR_KEYWORD for param in signature.parameters.values()):
+        return config_cls(**kwargs)
+
+    supported = {
+        key: value
+        for key, value in kwargs.items()
+        if key in signature.parameters and value is not None
+    }
+    return config_cls(**supported)
+
+async def fetch_static_html(url: str, headers: dict) -> str:
+    """Fetch HTML without Playwright as a fallback for structural false positives."""
+    def _read_url():
+        req = url_request.Request(url, headers=headers or {})
+        with url_request.urlopen(req, timeout=20) as response:
+            charset = response.headers.get_content_charset() or "utf-8"
+            return response.read().decode(charset, errors="replace")
+
+    return await asyncio.to_thread(_read_url)
+
 def get_text_value(value):
     """Extract text from a Crawl4AI markdown value or markdown-like object."""
     if isinstance(value, str) and value.strip():
@@ -98,12 +127,32 @@ async def fetch_url(url: str, request_config: ScrapeRequest) -> ScrapeResultItem
     proxy = format_proxy(request_config.proxy) if request_config.proxy else None
     
     if HAS_CRAWL4AI_V4:
-        browser_cfg = BrowserConfig(headless=True, proxy=proxy, headers=headers)
-        run_cfg = CrawlerRunConfig(
+        user_agent = headers.get("User-Agent")
+        browser_cfg = supported_config(
+            BrowserConfig,
+            headless=True,
+            proxy=proxy,
+            headers=headers,
+            user_agent=user_agent,
+            enable_stealth=True,
+            viewport={"width": 1366, "height": 900},
+        )
+        run_cfg = supported_config(
+            CrawlerRunConfig,
             cache_mode=CacheMode.BYPASS, 
             word_count_threshold=1, 
-            excluded_tags=['script', 'style', 'nav', 'footer', 'aside', 'header'],
-            remove_overlay_elements=True
+            excluded_tags=['script', 'style'],
+            remove_overlay_elements=True,
+            remove_consent_popups=True,
+            wait_until="networkidle",
+            page_timeout=60000,
+            delay_before_return_html=2.0,
+            scan_full_page=True,
+            simulate_user=True,
+            override_navigator=True,
+            magic=True,
+            max_retries=1,
+            fallback_fetch_function=lambda fallback_url: fetch_static_html(fallback_url, headers),
         )
         async with AsyncWebCrawler(config=browser_cfg) as crawler:
             result = await crawler.arun(url=url, config=run_cfg)
@@ -114,13 +163,18 @@ async def fetch_url(url: str, request_config: ScrapeRequest) -> ScrapeResultItem
                 word_count_threshold=1,
                 bypass_cache=True,
                 remove_overlay_elements=True,
-                exclude_tags=['script', 'style', 'nav', 'footer', 'aside', 'header']
+                exclude_tags=['script', 'style']
             )
     
-    if not result.success:
-        raise CrawlError(f"Crawl4AI parsing error: {result.error_message}")
-        
     clean_content, raw_content = extract_content(result)
+    if not result.success:
+        if clean_content:
+            logger.warning(
+                f"Crawl4AI reported failure for {url}, but usable content was extracted: {result.error_message}"
+            )
+        else:
+            raise CrawlError(f"Crawl4AI parsing error: {result.error_message}")
+
     if not clean_content or len(clean_content.strip()) == 0:
         raise EmptyContentError("Scraped content is empty after markdown and HTML fallback extraction.")
     

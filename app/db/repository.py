@@ -71,6 +71,7 @@ class DBRepository:
     async def save_result(self, result: ScrapeResultItem):
         """Insert a single scrape result if the database pool is available."""
         if not db.pool:
+            logger.warning(f"Database is disconnected; result for {result.url} was not saved.")
             return
             
         query = '''
@@ -103,6 +104,7 @@ class DBRepository:
                     result.error,
                     result.duration_ms
                 )
+            logger.info(f"Saved scrape result for {result.url} with status {result.status}.")
         except Exception as e:
             logger.error(f"Failed to auto-save result for {result.url} into database: {e}")
 

@@ -44,6 +44,6 @@ class Settings:
             f"{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
         ),
     )
-    MAX_CONCURRENT_SCRAPES = int(os.getenv("MAX_CONCURRENT_SCRAPES", "5"))
+    MAX_CONCURRENT_SCRAPES = int(os.getenv("MAX_CONCURRENT_SCRAPES", "10"))
 
 settings = Settings()

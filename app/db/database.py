@@ -16,7 +16,12 @@ class DatabaseManager:
         """Create the asyncpg pool from configured database settings."""
         logger.info("Connecting to PostgreSQL...")
         try:
-            self.pool = await asyncpg.create_pool(dsn=settings.DATABASE_URL)
+            self.pool = await asyncpg.create_pool(
+                dsn=settings.DATABASE_URL,
+                ssl=False,
+                timeout=10,
+                command_timeout=60,
+            )
             logger.info("Successfully connected to PostgreSQL.")
         except Exception as e:
             logger.error(f"Failed to connect to database. {e}")

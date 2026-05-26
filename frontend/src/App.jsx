@@ -52,6 +52,8 @@ function App() {
   const [proxy, setProxy] = useState("");
   const [extractSummary, setExtractSummary] = useState(true);
   const [extractLinks, setExtractLinks] = useState(true);
+  const [bypassCache, setBypassCache] = useState(false);
+  const [cacheTtlSeconds, setCacheTtlSeconds] = useState("");
   const [health, setHealth] = useState({ state: "checking", label: "Checking" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -112,6 +114,8 @@ function App() {
         proxy: proxy.trim() || null,
         extract_summary: extractSummary,
         extract_links: extractLinks,
+        bypass_cache: bypassCache,
+        cache_ttl_seconds: cacheTtlSeconds.trim() ? Number(cacheTtlSeconds) : null,
       };
 
       const res = await fetch(endpoint, {
@@ -139,6 +143,8 @@ function App() {
     setUrls("");
     setHeaders("");
     setProxy("");
+    setBypassCache(false);
+    setCacheTtlSeconds("");
     setResponse(null);
     setError("");
   }
@@ -317,6 +323,35 @@ function App() {
                   />
                 </div>
               </div>
+
+              <label className="switch-card">
+                <input
+                  type="checkbox"
+                  checked={bypassCache}
+                  onChange={(event) => setBypassCache(event.target.checked)}
+                />
+                <span>
+                  <Icon name="refresh-cw" size={18} />
+                  <strong>Bypass cache</strong>
+                  <small>Fresh scrape</small>
+                </span>
+              </label>
+
+              <div className="field">
+                <label htmlFor="cacheTtlSeconds">Cache TTL seconds</label>
+                <div className="input-shell">
+                  <Icon name="timer-reset" size={17} />
+                  <input
+                    id="cacheTtlSeconds"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={cacheTtlSeconds}
+                    onChange={(event) => setCacheTtlSeconds(event.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
             </div>
           </section>
 
@@ -443,7 +478,12 @@ function App() {
                       )}
 
                       {item.markdown && (
-                        <pre className="markdown-preview">{item.markdown.slice(0, 4000)}</pre>
+                        <pre
+                          className="markdown-preview"
+                          style={{ maxHeight: "none", overflow: "visible" }}
+                        >
+                          {item.markdown}
+                        </pre>
                       )}
                     </div>
                   </article>

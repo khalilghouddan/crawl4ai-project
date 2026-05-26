@@ -4,27 +4,10 @@ import os
 from pathlib import Path
 from urllib.parse import quote_plus
 
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-
-def load_dotenv(path: Path = PROJECT_ROOT / ".env") -> None:
-    """Load simple KEY=VALUE pairs from a local .env file."""
-    if not path.exists():
-        return
-
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        os.environ.setdefault(key, value)
-
-
-load_dotenv()
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 
 class Settings:
@@ -45,5 +28,9 @@ class Settings:
         ),
     )
     MAX_CONCURRENT_SCRAPES = int(os.getenv("MAX_CONCURRENT_SCRAPES", "10"))
+    SCRAPE_CACHE_TTL_SECONDS = int(os.getenv("SCRAPE_CACHE_TTL_SECONDS", "0"))
+    SCRAPE_BATCH_TIMEOUT_SECONDS = int(os.getenv("SCRAPE_BATCH_TIMEOUT_SECONDS", "240"))
+    SCRAPE_PAGE_TIMEOUT_MS = int(os.getenv("SCRAPE_PAGE_TIMEOUT_MS", "60000"))
+    SCRAPE_STATIC_FETCH_TIMEOUT_SECONDS = int(os.getenv("SCRAPE_STATIC_FETCH_TIMEOUT_SECONDS", "20"))
 
 settings = Settings()

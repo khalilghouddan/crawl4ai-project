@@ -21,7 +21,11 @@ def from_json(value):
 class DBRepository:
     """Persistence layer for scrape result records."""
 
-    async def get_successful_result_by_url(self, url: str):
+    async def get_successful_result_by_url(
+        self,
+        url: str,
+        max_age_seconds: int | None = None,
+    ):
         """Return the newest successful scrape result for a URL, if one exists."""
         if not db.pool:
             return None
@@ -41,13 +45,14 @@ class DBRepository:
         FROM scraped_pages
         WHERE url = $1
           AND status = 'success'
+          AND ($2::integer IS NULL OR created_at >= NOW() - make_interval(secs => $2))
         ORDER BY created_at DESC
         LIMIT 1
         '''
 
         try:
             async with db.pool.acquire() as conn:
-                row = await conn.fetchrow(query, url)
+                row = await conn.fetchrow(query, url, max_age_seconds)
         except Exception as e:
             logger.error(f"Failed to read cached scrape result for {url}: {e}")
             return None

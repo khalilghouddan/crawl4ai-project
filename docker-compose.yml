@@ -1,32 +1,19 @@
 services:
-  db:
-    image: postgres:16-alpine
-    profiles:
-      - docker-db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
-      POSTGRES_DB: ${POSTGRES_DB:-deep_search_results}
-    ports:
-      - "${POSTGRES_HOST_PORT:-5433}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-deep_search_results}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   api:
     build:
       context: .
+    restart: unless-stopped
     environment:
-      POSTGRES_HOST: ${API_POSTGRES_HOST:-db}
-      POSTGRES_PORT: ${API_POSTGRES_PORT:-5432}
+      POSTGRES_HOST: ${API_POSTGRES_HOST:-host.docker.internal}
+      POSTGRES_PORT: ${API_POSTGRES_PORT:-5433}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
       POSTGRES_DB: ${POSTGRES_DB:-deep_search_results}
       MAX_CONCURRENT_SCRAPES: ${MAX_CONCURRENT_SCRAPES:-10}
+      SCRAPE_BATCH_TIMEOUT_SECONDS: ${SCRAPE_BATCH_TIMEOUT_SECONDS:-240}
+      SCRAPE_PAGE_TIMEOUT_MS: ${SCRAPE_PAGE_TIMEOUT_MS:-60000}
+      SCRAPE_STATIC_FETCH_TIMEOUT_SECONDS: ${SCRAPE_STATIC_FETCH_TIMEOUT_SECONDS:-20}
+      SCRAPE_CACHE_TTL_SECONDS: ${SCRAPE_CACHE_TTL_SECONDS:-0}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -41,7 +28,5 @@ services:
     ports:
       - "5174:5174"
     depends_on:
-      - api
-
-volumes:
-  postgres_data:
+      api:
+        condition: service_started

@@ -54,7 +54,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ## 🐳 Docker Compose
 
-Run PostgreSQL, start the API, and serve the frontend:
+Start the API and serve the frontend. PostgreSQL must already be running locally and reachable from Docker through `host.docker.internal`.
 
 ```bash
 docker compose up --build
@@ -63,28 +63,25 @@ docker compose up --build
 - **Frontend:** http://localhost:5174
 - **API Docs:** http://localhost:8007/docs
 - **Health Check:** http://localhost:8007/health
-- **PostgreSQL:** `localhost:5433`, database `deep_search_results`, user `postgres`, password `change_me`
+- **PostgreSQL:** local database configured in `.env`, for example `localhost:5433`
 
 The compose setup uses these services:
 
-- `db`: PostgreSQL database
 - `api`: FastAPI + Crawl4AI service
 - `frontend`: static React test UI
+
+By default, Docker Compose limits the API to `MAX_CONCURRENT_SCRAPES=10`. Crawl4AI uses browser contexts for extraction, so raising this value can increase memory use quickly.
+
+For Docker Compose, keep `API_POSTGRES_HOST=host.docker.internal` and set `API_POSTGRES_PORT` to your local PostgreSQL port.
 
 To inspect saved scrape results from your host machine:
 
 ```bash
-docker compose exec -T db psql -U postgres -d deep_search_results -c "select id, url, status, created_at from scraped_pages order by created_at desc limit 10;"
+psql -h localhost -p 5433 -U postgres -d deep_search_results -c "select id, url, status, created_at from scraped_pages order by created_at desc limit 10;"
 ```
 
 Stop everything:
 
 ```bash
 docker compose down
-```
-
-Stop and delete the PostgreSQL volume:
-
-```bash
-docker compose down -v
 ```

@@ -11,6 +11,27 @@ class ScrapeRequest(BaseModel):
     proxy: Optional[str] = Field(None, description="Proxy credentials if any")
     extract_links: bool = Field(False, description="Extract internal links found on the page")
     extract_summary: bool = Field(False, description="Generate an AI-friendly fallback summary")
+    bypass_cache: bool = Field(
+        False,
+        description="Force a fresh scrape instead of returning a cached result",
+    )
+    cache_ttl_seconds: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Override cache TTL in seconds; 0 means no expiration",
+    )
+    batch_timeout_seconds: Optional[int] = Field(
+        None,
+        ge=1,
+        le=1800,
+        description="Maximum time to wait for a multi-URL request before returning partial results",
+    )
+    page_timeout_ms: Optional[int] = Field(
+        None,
+        ge=5000,
+        le=180000,
+        description="Override Crawl4AI page timeout for each URL",
+    )
 
 class ScrapeResultItem(BaseModel):
     """One normalized result item returned after a scrape attempt."""

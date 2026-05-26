@@ -172,7 +172,6 @@ svg {
 }
 
 .results-panel {
-  overflow: hidden;
   min-height: 540px;
 }
 
@@ -682,7 +681,6 @@ svg {
 }
 
 .result-card {
-  overflow: hidden;
   border: 1px solid rgba(29, 36, 51, 0.1);
   border-radius: 8px;
   background: #ffffff;
@@ -803,7 +801,19 @@ svg {
   font-size: 13px;
 }
 
-.markdown-preview,
+.markdown-preview {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: 8px;
+  padding: 13px;
+  color: #dbeafe;
+  background: #111827;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.48;
+}
+
 .json-view {
   margin: 0;
   max-height: 390px;

@@ -48,6 +48,10 @@ The `/scrape` endpoint accepts either a single URL or a list of URLs, and the ro
 
 ## Setup & Installation
 
+**Prerequisite**
+
+- Python 3.12
+
 **1. Install Python dependencies**
 
 From the project root:
